@@ -7,6 +7,22 @@ First up, you must install KVM and the Virtual Machine Manager. By installing `v
 sudo apt-get install -y virt-manager
 ```
 
+Now set up KVM to run as your user instead of root and allow it through AppArmor (for Ubuntu 20.04 and above):
+
+```bash
+sudo sed -i "s/#user = "root"/user = "$(id -un)"/g" /etc/libvirt/qemu.conf
+sudo sed -i "s/#group = "root"/group = "$(id -gn)"/g" /etc/libvirt/qemu.conf
+sudo usermod -a -G kvm $(id -un)
+sudo usermod -a -G libvirt $(id -un)
+sudo systemctl restart libvirtd
+sudo ln -s /etc/apparmor.d/usr.sbin.libvirtd /etc/apparmor.d/disable/
+
+sleep 5
+
+sudo virsh net-autostart default
+sudo virsh net-start default
+```
+
 ## Download the Windows Professional and KVM VirtIO drivers
 You will need Windows 10 Professional (or Enterprise or Server) to run RDP apps, Windows 10 Home will not suffice. You will also need drivers for VirtIO to ensure the best performance and lowest overhead for your system. You can download these at the following links.
 
@@ -18,6 +34,11 @@ KVM VirtIO drivers (for all distros): https://fedorapeople.org/groups/virt/virti
 The following guide will take you through the setup. If you are an expert user, you may wish to:
 - [Define a VM from XML (may not work on all systems)](#define-a-vm-from-xml)
 - [Run KVM in user mode](#run-kvm-in-user-mode)
+
+```bash
+virsh define docs/RDPWindows.xml
+virsh start RDPWindows
+```
 
 Otherwise, to set up the standard way, open `virt-manager` (Virtual Machines).
 
